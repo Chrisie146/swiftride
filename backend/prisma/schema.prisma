@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String
+  role      Role     @default(PASSENGER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ridesAsPassenger Ride[]         @relation("Passenger")
+  ridesAsDriver    Ride[]         @relation("Driver")
+  driverProfile    DriverProfile?
+  otpCodes         OtpCode[]
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model DriverProfile {
+  id                 String        @id @default(cuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id])
+  licenceNumber      String
+  vehicleMake        String
+  vehicleModel       String
+  vehicleColor       String
+  plateNumber        String        @unique
+  status             DriverStatus  @default(PENDING)
+  isOnline           Boolean       @default(false)
+  currentLat         Float?
+  currentLng         Float?
+  rating             Float         @default(5.0)
+  totalRides         Int           @default(0)
+  subscriptionActive Boolean       @default(false)
+  subscriptionExpiry DateTime?
+  bankAccount        DriverBankAccount?
+  commissionLedger   CommissionLedger[]
+  createdAt          DateTime      @default(now())
+}
+
+model DriverBankAccount {
+  id            String        @id @default(cuid())
+  driverId      String        @unique
+  driver        DriverProfile @relation(fields: [driverId], references: [id])
+  bankName      String
+  accountNumber String
+  accountHolder String
+  branchCode    String
+  payfastId     String?
+}
+
+model Ride {
+  id             String        @id @default(cuid())
+  passengerId    String
+  passenger      User          @relation("Passenger", fields: [passengerId], references: [id])
+  driverId       String?
+  driver         User?         @relation("Driver", fields: [driverId], references: [id])
+  pickupAddress  String
+  dropoffAddress String
+  pickupLat      Float
+  pickupLng      Float
+  dropoffLat     Float
+  dropoffLng     Float
+  distanceKm     Float?
+  fareAmount     Float?
+  commissionAmt  Float?
+  driverEarning  Float?
+  status         RideStatus    @default(REQUESTED)
+  paymentMethod  PaymentMethod
+  paymentStatus  PaymentStatus @default(PENDING)
+  requestedAt    DateTime      @default(now())
+  acceptedAt     DateTime?
+  arrivedAt      DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  passengerRating Int?
+  driverRating    Int?
+  commissionEntry CommissionLedger?
+}
+
+model CommissionLedger {
+  id          String        @id @default(cuid())
+  driverId    String
+  driver      DriverProfile @relation(fields: [driverId], references: [id])
+  rideId      String        @unique
+  ride        Ride          @relation(fields: [rideId], references: [id])
+  rideAmount  Float
+  commission  Float
+  driverOwes  Float
+  method      PaymentMethod
+  settled     Boolean       @default(false)
+  settledAt   DateTime?
+  createdAt   DateTime      @default(now())
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+enum DriverStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum RideStatus {
+  REQUESTED
+  ACCEPTED
+  ENROUTE
+  ARRIVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  SNAPSCAN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+}

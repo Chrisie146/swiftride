@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment files — never commit real secrets
+.env
+**/.env
+
+# Build outputs
+dist/
+admin/dist/
+
+# Expo
+.expo/
+**/.expo/
+
+# OS junk
+.DS_Store
+Thumbs.db
