@@ -4,57 +4,49 @@ import api from '../api';
 export default function Settlements() {
   const [data, setData] = useState([]);
 
-  useEffect(() => {
-    fetchDrivers();
-  }, []);
+  useEffect(() => { fetchDrivers(); }, []);
 
   const fetchDrivers = async () => {
     try {
-      // We don't have a specific endpoint for settlements list directly,
-      // wait, the spec says "For each driver with unsettled cash commission: Show driver name, phone, number of unsettled rides, total cash owed".
-      // Let's get all drivers and find who owes cash. Wait, we don't have that endpoint. 
-      // I'll create a simple API endpoint workaround or just fetch it here if not possible. But we have to stick to the spec API.
-      // Wait, the spec says /admin/revenue returns cashPending, but doesn't have an endpoint for each unsettled driver.
-      // There's only GET /admin/drivers/pending ... oh wait, we can just fetch all drivers or rides and calculate? No, that's inefficient.
-      // Let's fetch all APPROVED drivers? We don't have `GET /admin/drivers` in spec.
-      // Let's add an endpoint for it in frontend mock or just modify backend. But wait, we can just fetch /admin/rides and group them?
-      // Actually, my bad. The spec only defined "GET /admin/drivers/pending". 
-      // Since it's an MVP, maybe I can just fetch from a missing API and I will build it. 
-      // Let's assume `GET /admin/settlements` or similar. I'll ask for permission to add it or do it.
       const res = await api.get('/admin/settlements').catch(() => ({ data: [] }));
       setData(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const markSettled = async (driverId) => {
     try {
       await api.post(`/admin/commission/${driverId}/settle`);
-      fetchDrivers();
-    } catch (err) {
-      alert('Fail: ' + err.message);
-    }
+      setData(prev => prev.filter(d => d.driverId !== driverId));
+    } catch (err) { alert(err.response?.data?.error || err.message); }
   };
 
   return (
     <div>
-      <h2>Settle Cash Commissions</h2>
-      {data.length === 0 ? <p>No drivers owe cash commission currently.</p> : (
-        <div style={{ display: 'grid', gap: '15px' }}>
+      <div style={{ fontSize: '19px', fontWeight: 700, color: '#1C1917', letterSpacing: '-0.3px', marginBottom: '24px' }}>Settlements</div>
+      {data.length === 0 ? (
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '40px', textAlign: 'center', border: '1px solid #E7E5E4', color: '#A8A29E', fontSize: '14px' }}>
+          No drivers owe cash commission currently.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {data.map(d => (
-            <div key={d.driverId} style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={d.driverId} style={{ background: '#fff', borderRadius: '10px', padding: '16px 18px', border: '1px solid #E7E5E4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3>{d.driverName} ({d.driverPhone})</h3>
-                <p>Unsettled Rides: {d.unsettledRidesCount}</p>
-                <p style={{ fontWeight: 'bold', fontSize: '18px' }}>Total Cash Owed: R {d.totalOwed.toFixed(2)}</p>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#1C1917', marginBottom: '2px' }}>{d.driverName}</div>
+                <div style={{ fontSize: '12px', color: '#A8A29E', marginBottom: '8px' }}>{d.driverPhone}</div>
+                <div style={{ fontSize: '12px', color: '#57534E' }}>{d.unsettledRidesCount} unsettled ride{d.unsettledRidesCount !== 1 ? 's' : ''}</div>
               </div>
-              <button 
-                onClick={() => markSettled(d.driverId)}
-                style={{ background: '#007bff', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Mark Settled
-              </button>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: '#DC2626', letterSpacing: '-0.4px', marginBottom: '10px' }}>
+                  R {d.totalOwed.toFixed(2)}
+                </div>
+                <button
+                  onClick={() => markSettled(d.driverId)}
+                  style={{ background: '#FF6B35', color: '#fff', border: 'none', borderRadius: '7px', padding: '8px 16px', fontSize: '12px', fontWeight: 600, fontFamily: 'inherit' }}
+                >
+                  Mark Settled
+                </button>
+              </div>
             </div>
           ))}
         </div>
