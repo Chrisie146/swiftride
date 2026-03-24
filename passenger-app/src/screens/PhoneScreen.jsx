@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import api from '../api';
+import { colors } from '../theme';
 
 export default function PhoneScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(null);
 
   const handleSendOtp = async () => {
     if (!phone.trim()) return Alert.alert('Error', 'Please enter your phone number');
@@ -19,9 +19,8 @@ export default function PhoneScreen({ navigation }) {
       navigation.navigate('Otp', { userId: res.data.userId, phone: phone.trim() });
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to send OTP';
-      // If backend says name is required, prompt the user
       if (msg.includes('Name is required')) {
-        Alert.alert('Name required', 'Looks like you\'re new! Please enter your name.');
+        Alert.alert('Name required', "Looks like you're new! Please enter your name.");
       } else {
         Alert.alert('Error', msg);
       }
@@ -33,29 +32,32 @@ export default function PhoneScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.inner}>
-        <Text style={styles.logo}>🚗 SwiftRide</Text>
-        <Text style={styles.title}>Enter your phone number</Text>
-        <Text style={styles.subtitle}>We'll send you an OTP to verify</Text>
+        <View style={styles.logoArea}>
+          <View style={styles.logoMark} />
+          <Text style={styles.appName}>SwiftRide</Text>
+          <Text style={styles.tagline}>Your ride, your town</Text>
+        </View>
 
+        <Text style={styles.fieldLabel}>Mobile number</Text>
         <TextInput
-          style={styles.input}
-          placeholder="082 123 4567"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-          maxLength={15}
+          style={[styles.input, focused === 'phone' && styles.inputFocused]}
+          placeholder="082 123 4567" placeholderTextColor={colors.gray250}
+          keyboardType="phone-pad" value={phone} onChangeText={setPhone} maxLength={15}
+          onFocus={() => setFocused('phone')} onBlur={() => setFocused(null)}
         />
 
+        <Text style={styles.fieldLabel}>Your name</Text>
         <TextInput
-          style={styles.input}
-          placeholder="Your name (required for new users)"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
+          style={[styles.input, focused === 'name' && styles.inputFocused]}
+          placeholder="Required for new users" placeholderTextColor={colors.gray250}
+          value={name} onChangeText={setName} autoCapitalize="words"
+          onFocus={() => setFocused('name')} onBlur={() => setFocused(null)}
         />
+
+        <Text style={styles.hint}>We'll send a one-time code to verify your number.</Text>
 
         <TouchableOpacity style={styles.btn} onPress={handleSendOtp} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Send OTP</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Send Code</Text>}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -63,15 +65,16 @@ export default function PhoneScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  inner: { flex: 1, padding: 30, justifyContent: 'center' },
-  logo: { fontSize: 40, textAlign: 'center', marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 40 },
-  input: {
-    borderWidth: 1, borderColor: '#ddd', borderRadius: 12, padding: 15,
-    fontSize: 16, marginBottom: 16, backgroundColor: '#f9f9f9'
-  },
-  btn: { backgroundColor: '#FF6B35', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 4 },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: colors.warmBg },
+  inner: { flex: 1, padding: 24, justifyContent: 'center' },
+  logoArea: { alignItems: 'center', marginBottom: 36 },
+  logoMark: { width: 56, height: 56, backgroundColor: colors.orange500, borderRadius: 16, marginBottom: 14 },
+  appName: { fontSize: 22, fontWeight: '800', color: colors.gray900, letterSpacing: -0.5 },
+  tagline: { fontSize: 13, color: colors.gray400, marginTop: 4 },
+  fieldLabel: { fontSize: 11, fontWeight: '600', color: colors.gray600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  input: { backgroundColor: colors.white, borderWidth: 1.5, borderColor: colors.gray200, borderRadius: 12, padding: 14, fontSize: 16, fontWeight: '600', color: colors.gray900, marginBottom: 16 },
+  inputFocused: { borderColor: colors.orange500 },
+  hint: { fontSize: 12, color: colors.gray400, marginBottom: 24, lineHeight: 18 },
+  btn: { backgroundColor: colors.orange500, borderRadius: 12, padding: 16, alignItems: 'center' },
+  btnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
 });
