@@ -23,6 +23,8 @@ export const colors = {
   error:     '#B91C1C',
   tealBg:    '#CFFAFE',
   teal:      '#0E7490',
+  infoBg:    '#DBEAFE',
+  info:      '#1D4ED8',
 };
 
 export const shadow = {
