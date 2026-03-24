@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { colors } from '../theme';
 
 export default function Revenue() {
   const [data, setData] = useState(null);
@@ -34,8 +35,8 @@ export default function Revenue() {
           ].map(({ label, value, sub, warn }, i) => (
             <div key={i} style={{ background: '#fff', padding: '16px 18px' }}>
               <div style={{ fontSize: '11px', color: '#A8A29E', fontWeight: 500, marginBottom: '6px' }}>{label}</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: warn ? '#DC2626' : '#1C1917', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
-              {sub && <div style={{ fontSize: '11px', color: warn ? '#DC2626' : '#A8A29E', fontWeight: 500, marginTop: '4px' }}>{sub}</div>}
+              <div style={{ fontSize: '22px', fontWeight: 700, color: warn ? colors.cashWarning : colors.gray900, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+              {sub && <div style={{ fontSize: '11px', color: warn ? colors.cashWarning : colors.gray400, fontWeight: 500, marginTop: '4px' }}>{sub}</div>}
             </div>
           ))}
         </div>
